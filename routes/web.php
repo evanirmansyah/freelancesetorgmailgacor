@@ -39,5 +39,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/penarikan', [App\Http\Controllers\Admin\PenarikanController::class, 'index'])->name('admin.penarikan.index');
         Route::post('/admin/penarikan/{id}/approve', [App\Http\Controllers\Admin\PenarikanController::class, 'approve'])->name('admin.penarikan.approve');
         Route::post('/admin/penarikan/{id}/reject', [App\Http\Controllers\Admin\PenarikanController::class, 'reject'])->name('admin.penarikan.reject');
+
+        Route::get('/admin/users', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users.index');
+        Route::put('/admin/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('admin.users.update');
+        Route::delete('/admin/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('admin.users.destroy');
     });
 });

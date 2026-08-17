@@ -12,7 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE penarikan_saldo MODIFY COLUMN metode VARCHAR(255)");
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE penarikan_saldo MODIFY COLUMN metode VARCHAR(255)");
+        }
     }
 
     /**

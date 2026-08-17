@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('penarikan_saldo', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->enum('metode', ['DANA', 'Bank']);
+            $table->string('metode');
             $table->string('nama_bank_ewallet')->nullable();
             $table->string('nomor_rekening_hp');
             $table->string('nama_pemilik');
