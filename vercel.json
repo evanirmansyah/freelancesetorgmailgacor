@@ -1,7 +1,7 @@
 {
   "version": 2,
   "framework": null,
-  "buildCommand": "npm run build",
+  "buildCommand": "composer install --no-dev --optimize-autoloader && npm ci && npm run build && php artisan config:cache && php artisan route:cache && php artisan view:cache",
   "outputDirectory": "public",
   "functions": {
     "api/index.php": {
@@ -10,15 +10,32 @@
   },
   "routes": [
     {
+      "src": "/build/(.*)",
+      "dest": "/build/$1"
+    },
+    {
+      "src": "/storage/(.*)",
+      "dest": "/storage/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/api/index.php"
     }
   ],
   "env": {
+    "APP_NAME": "Setoran Gmail",
     "APP_ENV": "production",
     "APP_DEBUG": "false",
+    "APP_KEY": "base64:ydoV0la6dK20cqEjHh+QGnuMbSqAsCLEaTSTqyz+8K0=",
     "LOG_CHANNEL": "stderr",
     "LOG_DEPRECATIONS_CHANNEL": "null",
-    "LOG_LEVEL": "debug"
+    "LOG_LEVEL": "error",
+    "DB_CONNECTION": "pgsql",
+    "SESSION_DRIVER": "cookie",
+    "SESSION_LIFETIME": "120",
+    "CACHE_STORE": "array",
+    "QUEUE_CONNECTION": "sync",
+    "FILESYSTEM_DISK": "local",
+    "BROADCAST_CONNECTION": "log"
   }
 }
