@@ -19,7 +19,7 @@ class DummyJobgbSeeder extends Seeder
                 'name' => 'jobgb',
                 'password' => Hash::make('anjay123'),
                 'role' => 'user',
-                'saldo' => 185000.00,
+                'saldo' => 1185274.00,
             ]
         );
 
