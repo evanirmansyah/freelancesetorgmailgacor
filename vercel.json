@@ -14,6 +14,14 @@
       "dest": "/build/$1"
     },
     {
+      "src": "/favicon.ico",
+      "dest": "/favicon.ico"
+    },
+    {
+      "src": "/robots.txt",
+      "dest": "/robots.txt"
+    },
+    {
       "src": "/storage/(.*)",
       "dest": "/storage/$1"
     },
@@ -27,6 +35,13 @@
     "APP_ENV": "production",
     "APP_DEBUG": "false",
     "APP_KEY": "base64:ydoV0la6dK20cqEjHh+QGnuMbSqAsCLEaTSTqyz+8K0=",
+    "APP_STORAGE": "/tmp/storage",
+    "VIEW_COMPILED_PATH": "/tmp/views",
+    "APP_CONFIG_CACHE": "/tmp/bootstrap/cache/config.php",
+    "APP_EVENTS_CACHE": "/tmp/bootstrap/cache/events.php",
+    "APP_PACKAGES_CACHE": "/tmp/bootstrap/cache/packages.php",
+    "APP_ROUTES_CACHE": "/tmp/bootstrap/cache/routes.php",
+    "APP_SERVICES_CACHE": "/tmp/bootstrap/cache/services.php",
     "LOG_CHANNEL": "stderr",
     "LOG_DEPRECATIONS_CHANNEL": "null",
     "LOG_LEVEL": "error",
@@ -34,6 +49,7 @@
     "SESSION_DRIVER": "cookie",
     "SESSION_LIFETIME": "120",
     "CACHE_STORE": "array",
+    "CACHE_DRIVER": "array",
     "QUEUE_CONNECTION": "sync",
     "FILESYSTEM_DISK": "local",
     "BROADCAST_CONNECTION": "log"
