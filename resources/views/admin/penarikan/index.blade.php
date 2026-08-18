@@ -82,6 +82,11 @@
                                     👁 Sudah Dibaca
                                 </button>
                                 @endif
+                                @if($wd->is_read)
+                                <button onclick="markUnreadPenarikan({{ $wd->id }}, this)" class="px-3 py-1.5 bg-orange-100 text-orange-700 hover:bg-orange-200 rounded-lg text-xs font-medium transition-colors whitespace-nowrap">
+                                    ↩ Belum Dibaca
+                                </button>
+                                @endif
                             </div>
                             @endif
                             @if($wd->status == 'rejected' && $wd->admin_notes)
@@ -150,6 +155,26 @@
         } catch(e) {
             btn.disabled = false;
             btn.innerText = '👁 Sudah Dibaca';
+        }
+    }
+
+    async function markUnreadPenarikan(id, btn) {
+        btn.disabled = true;
+        btn.innerText = '...';
+        try {
+            const res = await fetch(`/admin/penarikan/${id}/mark-unread`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken }
+            });
+            if (res.ok) {
+                btn.closest('div').removeChild(btn);
+            } else {
+                btn.disabled = false;
+                btn.innerText = '↩ Belum Dibaca';
+            }
+        } catch(e) {
+            btn.disabled = false;
+            btn.innerText = '↩ Belum Dibaca';
         }
     }
 

@@ -53,6 +53,16 @@ class SetoranController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function markUnread($id)
+    {
+        $setoran = SetoranEmail::findOrFail($id);
+        if ($setoran->status === 'pending' && $setoran->is_read) {
+            $setoran->is_read = false;
+            $setoran->save();
+        }
+        return response()->json(['success' => true]);
+    }
+
     public function approve(Request $request, $id)
     {
         $request->validate(['total_reward' => 'required|numeric|min:0']);

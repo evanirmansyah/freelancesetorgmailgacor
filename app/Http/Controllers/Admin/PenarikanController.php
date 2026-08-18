@@ -54,6 +54,16 @@ class PenarikanController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function markUnread($id)
+    {
+        $penarikan = PenarikanSaldo::findOrFail($id);
+        if ($penarikan->status === 'pending' && $penarikan->is_read) {
+            $penarikan->is_read = false;
+            $penarikan->save();
+        }
+        return response()->json(['success' => true]);
+    }
+
     public function approve(Request $request, $id)
     {
         $penarikan = PenarikanSaldo::findOrFail($id);
