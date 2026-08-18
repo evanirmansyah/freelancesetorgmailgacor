@@ -72,7 +72,14 @@
                             @endif
                         </td>
                         <td class="px-6 py-4">
-                            <button onclick="viewData({{ $setoran->id }}, `{{ htmlspecialchars($setoran->email_data, ENT_QUOTES) }}`, '{{ $setoran->status }}', {{ $setoran->is_read ? 'true' : 'false' }})" class="px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-medium transition-colors">Lihat Data</button>
+                            <div class="flex items-center gap-2">
+                                <button onclick="viewData({{ $setoran->id }}, `{{ htmlspecialchars($setoran->email_data, ENT_QUOTES) }}`, '{{ $setoran->status }}')" class="px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-medium transition-colors">Lihat Data</button>
+                                @if($setoran->status == 'pending' && !$setoran->is_read)
+                                <button onclick="markRead({{ $setoran->id }}, this)" class="px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-xs font-medium transition-colors whitespace-nowrap">
+                                    👁 Sudah Dibaca
+                                </button>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                     @empty
@@ -138,7 +145,7 @@
 <script>
     const csrfToken = '{{ csrf_token() }}';
 
-    async function viewData(id, data, status, isRead) {
+    function viewData(id, data, status) {
         document.getElementById('currentSetoranId').value = id;
         document.getElementById('viewEmailData').value = data;
         
@@ -151,15 +158,26 @@
         document.getElementById('rejectForm').classList.add('hidden');
         document.getElementById('approveForm').classList.add('hidden');
         document.getElementById('viewModal').classList.remove('hidden');
+    }
 
-        // Tandai sebagai sudah dibaca jika belum dibaca dan masih pending
-        if (status === 'pending' && !isRead) {
-            try {
-                await fetch(`/admin/setoran/${id}/mark-read`, {
-                    method: 'POST',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken }
-                });
-            } catch(e) { /* silent fail */ }
+    async function markRead(id, btn) {
+        btn.disabled = true;
+        btn.innerText = '...';
+        try {
+            const res = await fetch(`/admin/setoran/${id}/mark-read`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken }
+            });
+            if (res.ok) {
+                // Hapus tombol dan tandai row sudah dibaca
+                btn.closest('div').removeChild(btn);
+            } else {
+                btn.disabled = false;
+                btn.innerText = '👁 Sudah Dibaca';
+            }
+        } catch(e) {
+            btn.disabled = false;
+            btn.innerText = '👁 Sudah Dibaca';
         }
     }
 

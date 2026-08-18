@@ -74,9 +74,14 @@
                         </td>
                         <td class="px-6 py-4">
                             @if($wd->status == 'pending')
-                            <div class="flex gap-2">
+                            <div class="flex flex-wrap gap-2">
                                 <button onclick="processApprove({{ $wd->id }})" class="px-3 py-1.5 bg-status-success text-white hover:bg-green-600 rounded-lg text-xs font-medium transition-colors">ACC</button>
                                 <button onclick="promptReject({{ $wd->id }})" class="px-3 py-1.5 bg-status-danger text-white hover:bg-red-600 rounded-lg text-xs font-medium transition-colors">Tolak</button>
+                                @if(!$wd->is_read)
+                                <button onclick="markReadPenarikan({{ $wd->id }}, this)" class="px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-xs font-medium transition-colors whitespace-nowrap">
+                                    👁 Sudah Dibaca
+                                </button>
+                                @endif
                             </div>
                             @endif
                             @if($wd->status == 'rejected' && $wd->admin_notes)
@@ -128,27 +133,28 @@
 <script>
     const csrfToken = '{{ csrf_token() }}';
 
-    // Tandai sebagai dibaca saat baris diklik (untuk tab pending)
-    @if($tab === 'pending')
-    document.querySelectorAll('tr[id^="row-"]').forEach(function(row) {
-        row.addEventListener('click', function() {
-            const id = this.id.replace('row-', '');
-            fetch(`/admin/penarikan/${id}/mark-read`, {
+    async function markReadPenarikan(id, btn) {
+        btn.disabled = true;
+        btn.innerText = '...';
+        try {
+            const res = await fetch(`/admin/penarikan/${id}/mark-read`, {
                 method: 'POST',
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken }
-            }).catch(() => {});
-        });
-    });
-    @endif
+            });
+            if (res.ok) {
+                btn.closest('div').removeChild(btn);
+            } else {
+                btn.disabled = false;
+                btn.innerText = '👁 Sudah Dibaca';
+            }
+        } catch(e) {
+            btn.disabled = false;
+            btn.innerText = '👁 Sudah Dibaca';
+        }
+    }
 
     async function processApprove(id) {
         if(!confirm('Anda yakin ingin menyetujui penarikan ini? Pastikan Anda sudah mentransfer dananya.')) return;
-
-        // Tandai sebagai dibaca sebelum approve
-        await fetch(`/admin/penarikan/${id}/mark-read`, {
-            method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken }
-        }).catch(() => {});
 
         let bodyData = new FormData();
         bodyData.append('_token', csrfToken);
@@ -173,12 +179,6 @@
     }
 
     function promptReject(id) {
-        // Tandai sebagai dibaca
-        fetch(`/admin/penarikan/${id}/mark-read`, {
-            method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken }
-        }).catch(() => {});
-
         document.getElementById('rejectId').value = id;
         document.getElementById('rejectNotes').value = '';
         document.getElementById('rejectModal').classList.remove('hidden');
