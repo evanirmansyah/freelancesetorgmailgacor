@@ -9,10 +9,48 @@ use App\Models\SetoranEmail;
 
 class SetoranController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $setorans = SetoranEmail::with('user')->latest()->get();
-        return view('admin.setoran.index', compact('setorans'));
+        $tab = $request->query('tab', 'pending');
+
+        if ($tab === 'diproses') {
+            // ACC atau Ditolak
+            $setorans = SetoranEmail::with('user')
+                ->whereIn('status', ['approved', 'rejected'])
+                ->latest()
+                ->get();
+        } elseif ($tab === 'dibaca') {
+            // Pending tapi sudah dibaca admin
+            $setorans = SetoranEmail::with('user')
+                ->where('status', 'pending')
+                ->where('is_read', true)
+                ->latest()
+                ->get();
+        } else {
+            // Pending dan belum dibaca (default)
+            $setorans = SetoranEmail::with('user')
+                ->where('status', 'pending')
+                ->where('is_read', false)
+                ->latest()
+                ->get();
+        }
+
+        // Hitung badge tiap tab
+        $countPending   = SetoranEmail::where('status', 'pending')->where('is_read', false)->count();
+        $countDibaca    = SetoranEmail::where('status', 'pending')->where('is_read', true)->count();
+        $countDiproses  = SetoranEmail::whereIn('status', ['approved', 'rejected'])->count();
+
+        return view('admin.setoran.index', compact('setorans', 'tab', 'countPending', 'countDibaca', 'countDiproses'));
+    }
+
+    public function markRead($id)
+    {
+        $setoran = SetoranEmail::findOrFail($id);
+        if ($setoran->status === 'pending' && !$setoran->is_read) {
+            $setoran->is_read = true;
+            $setoran->save();
+        }
+        return response()->json(['success' => true]);
     }
 
     public function approve(Request $request, $id)

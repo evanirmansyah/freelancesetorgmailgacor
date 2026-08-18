@@ -17,6 +17,7 @@ class PenarikanSaldo extends Model
         'jumlah',
         'status',
         'admin_notes',
+        'is_read',
     ];
 
     public function user()

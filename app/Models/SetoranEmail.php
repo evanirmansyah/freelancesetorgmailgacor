@@ -15,6 +15,7 @@ class SetoranEmail extends Model
         'total_reward',
         'status',
         'admin_notes',
+        'is_read',
     ];
 
     public function user()

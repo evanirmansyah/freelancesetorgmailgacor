@@ -9,6 +9,37 @@
         </div>
     </div>
 
+    {{-- Tab Navigation --}}
+    <div class="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit">
+        <a href="{{ route('admin.penarikan.index', ['tab' => 'pending']) }}"
+           class="relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                  {{ $tab === 'pending' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Pending
+            @if($countPending > 0)
+            <span class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-orange-500 text-white rounded-full">{{ $countPending }}</span>
+            @endif
+        </a>
+        <a href="{{ route('admin.penarikan.index', ['tab' => 'dibaca']) }}"
+           class="relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                  {{ $tab === 'dibaca' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            Sudah Dibaca
+            @if($countDibaca > 0)
+            <span class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-blue-500 text-white rounded-full">{{ $countDibaca }}</span>
+            @endif
+        </a>
+        <a href="{{ route('admin.penarikan.index', ['tab' => 'diproses']) }}"
+           class="relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                  {{ $tab === 'diproses' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Sudah Diproses
+            @if($countDiproses > 0)
+            <span class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-slate-400 text-white rounded-full">{{ $countDiproses }}</span>
+            @endif
+        </a>
+    </div>
+
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm text-slate-600">
@@ -55,7 +86,12 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-8 text-center text-slate-500">Belum ada permintaan penarikan.</td>
+                        <td colspan="6" class="px-6 py-8 text-center text-slate-500">
+                            @if($tab === 'pending') Tidak ada permintaan penarikan pending baru.
+                            @elseif($tab === 'dibaca') Tidak ada permintaan yang sudah dibaca.
+                            @else Belum ada permintaan yang diproses.
+                            @endif
+                        </td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -90,11 +126,32 @@
 </div>
 
 <script>
+    const csrfToken = '{{ csrf_token() }}';
+
+    // Tandai sebagai dibaca saat baris diklik (untuk tab pending)
+    @if($tab === 'pending')
+    document.querySelectorAll('tr[id^="row-"]').forEach(function(row) {
+        row.addEventListener('click', function() {
+            const id = this.id.replace('row-', '');
+            fetch(`/admin/penarikan/${id}/mark-read`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken }
+            }).catch(() => {});
+        });
+    });
+    @endif
+
     async function processApprove(id) {
         if(!confirm('Anda yakin ingin menyetujui penarikan ini? Pastikan Anda sudah mentransfer dananya.')) return;
 
+        // Tandai sebagai dibaca sebelum approve
+        await fetch(`/admin/penarikan/${id}/mark-read`, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken }
+        }).catch(() => {});
+
         let bodyData = new FormData();
-        bodyData.append('_token', '{{ csrf_token() }}');
+        bodyData.append('_token', csrfToken);
 
         try {
             const response = await fetch(`/admin/penarikan/${id}/approve`, {
@@ -116,6 +173,12 @@
     }
 
     function promptReject(id) {
+        // Tandai sebagai dibaca
+        fetch(`/admin/penarikan/${id}/mark-read`, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken }
+        }).catch(() => {});
+
         document.getElementById('rejectId').value = id;
         document.getElementById('rejectNotes').value = '';
         document.getElementById('rejectModal').classList.remove('hidden');
@@ -134,7 +197,7 @@
         btn.innerText = 'Memproses...';
 
         let bodyData = new FormData();
-        bodyData.append('_token', '{{ csrf_token() }}');
+        bodyData.append('_token', csrfToken);
         bodyData.append('admin_notes', notes);
 
         try {

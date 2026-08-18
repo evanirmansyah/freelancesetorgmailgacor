@@ -10,10 +10,48 @@ use Illuminate\Support\Facades\DB;
 
 class PenarikanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $penarikans = PenarikanSaldo::with('user')->latest()->get();
-        return view('admin.penarikan.index', compact('penarikans'));
+        $tab = $request->query('tab', 'pending');
+
+        if ($tab === 'diproses') {
+            // ACC atau Ditolak
+            $penarikans = PenarikanSaldo::with('user')
+                ->whereIn('status', ['approved', 'rejected'])
+                ->latest()
+                ->get();
+        } elseif ($tab === 'dibaca') {
+            // Pending tapi sudah dibaca admin
+            $penarikans = PenarikanSaldo::with('user')
+                ->where('status', 'pending')
+                ->where('is_read', true)
+                ->latest()
+                ->get();
+        } else {
+            // Pending dan belum dibaca (default)
+            $penarikans = PenarikanSaldo::with('user')
+                ->where('status', 'pending')
+                ->where('is_read', false)
+                ->latest()
+                ->get();
+        }
+
+        // Hitung badge tiap tab
+        $countPending  = PenarikanSaldo::where('status', 'pending')->where('is_read', false)->count();
+        $countDibaca   = PenarikanSaldo::where('status', 'pending')->where('is_read', true)->count();
+        $countDiproses = PenarikanSaldo::whereIn('status', ['approved', 'rejected'])->count();
+
+        return view('admin.penarikan.index', compact('penarikans', 'tab', 'countPending', 'countDibaca', 'countDiproses'));
+    }
+
+    public function markRead($id)
+    {
+        $penarikan = PenarikanSaldo::findOrFail($id);
+        if ($penarikan->status === 'pending' && !$penarikan->is_read) {
+            $penarikan->is_read = true;
+            $penarikan->save();
+        }
+        return response()->json(['success' => true]);
     }
 
     public function approve(Request $request, $id)

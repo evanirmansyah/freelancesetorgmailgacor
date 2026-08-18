@@ -9,6 +9,37 @@
         </div>
     </div>
 
+    {{-- Tab Navigation --}}
+    <div class="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit">
+        <a href="{{ route('admin.setoran.index', ['tab' => 'pending']) }}"
+           class="relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                  {{ $tab === 'pending' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Pending
+            @if($countPending > 0)
+            <span class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-orange-500 text-white rounded-full">{{ $countPending }}</span>
+            @endif
+        </a>
+        <a href="{{ route('admin.setoran.index', ['tab' => 'dibaca']) }}"
+           class="relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                  {{ $tab === 'dibaca' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            Sudah Dibaca
+            @if($countDibaca > 0)
+            <span class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-blue-500 text-white rounded-full">{{ $countDibaca }}</span>
+            @endif
+        </a>
+        <a href="{{ route('admin.setoran.index', ['tab' => 'diproses']) }}"
+           class="relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all
+                  {{ $tab === 'diproses' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Sudah Diproses
+            @if($countDiproses > 0)
+            <span class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-slate-400 text-white rounded-full">{{ $countDiproses }}</span>
+            @endif
+        </a>
+    </div>
+
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm text-slate-600">
@@ -41,12 +72,17 @@
                             @endif
                         </td>
                         <td class="px-6 py-4">
-                            <button onclick="viewData({{ $setoran->id }}, `{{ htmlspecialchars($setoran->email_data, ENT_QUOTES) }}`, '{{ $setoran->status }}')" class="px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-medium transition-colors">Lihat Data</button>
+                            <button onclick="viewData({{ $setoran->id }}, `{{ htmlspecialchars($setoran->email_data, ENT_QUOTES) }}`, '{{ $setoran->status }}', {{ $setoran->is_read ? 'true' : 'false' }})" class="px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-medium transition-colors">Lihat Data</button>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-8 text-center text-slate-500">Belum ada setoran.</td>
+                        <td colspan="7" class="px-6 py-8 text-center text-slate-500">
+                            @if($tab === 'pending') Tidak ada setoran pending baru.
+                            @elseif($tab === 'dibaca') Tidak ada setoran yang sudah dibaca.
+                            @else Belum ada setoran yang diproses.
+                            @endif
+                        </td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -100,7 +136,9 @@
 </div>
 
 <script>
-    function viewData(id, data, status) {
+    const csrfToken = '{{ csrf_token() }}';
+
+    async function viewData(id, data, status, isRead) {
         document.getElementById('currentSetoranId').value = id;
         document.getElementById('viewEmailData').value = data;
         
@@ -113,6 +151,16 @@
         document.getElementById('rejectForm').classList.add('hidden');
         document.getElementById('approveForm').classList.add('hidden');
         document.getElementById('viewModal').classList.remove('hidden');
+
+        // Tandai sebagai sudah dibaca jika belum dibaca dan masih pending
+        if (status === 'pending' && !isRead) {
+            try {
+                await fetch(`/admin/setoran/${id}/mark-read`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken }
+                });
+            } catch(e) { /* silent fail */ }
+        }
     }
 
     function closeViewModal() {
@@ -159,13 +207,10 @@
         
         let url = '';
         let bodyData = new FormData();
-        bodyData.append('_token', '{{ csrf_token() }}');
+        bodyData.append('_token', csrfToken);
 
         if (action === 'approve') {
-            if (!reward) {
-                alert('Silakan masukkan total reward.');
-                return;
-            }
+            if (!reward) { alert('Silakan masukkan total reward.'); return; }
             url = `/admin/setoran/${id}/approve`;
             bodyData.append('total_reward', reward);
             btnApprove.innerText = 'Memproses...';
@@ -180,9 +225,7 @@
         try {
             const response = await fetch(url, {
                 method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: bodyData
             });
             const result = await response.json();
