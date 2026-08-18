@@ -8,22 +8,6 @@ use App\Http\Controllers\AdminController;
 
 Route::get('/', function () { return redirect('/login'); });
 
-// TEMPORARY: Migration runner — hapus setelah dijalankan
-Route::get('/run-migrate-setor2026', function () {
-    if (request('token') !== 'setor2026deploy') {
-        abort(403);
-    }
-    try {
-        $output = new \Symfony\Component\Console\Output\BufferedOutput();
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true], $output);
-        return '<pre style="background:#111;color:#0f0;padding:20px;font-family:monospace;">'
-            . '✅ Migration Output:<br><br>'
-            . htmlspecialchars($output->fetch())
-            . '<br><a href="/admin/setoran" style="color:#0af;">→ Buka Verifikasi Setoran</a></pre>';
-    } catch (\Exception $e) {
-        return '<pre style="background:#111;color:#f44;padding:20px;">❌ ERROR: ' . htmlspecialchars($e->getMessage()) . '</pre>';
-    }
-});
 
 // Guest routes
 Route::middleware('guest')->group(function () {
