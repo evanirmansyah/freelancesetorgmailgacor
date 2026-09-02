@@ -36,8 +36,12 @@ Route::get('/migrate-db', function () {
             return "Migration Failed! Output:\n" . $migrateOutput;
         }
         
-        \Illuminate\Support\Facades\Artisan::call('seed:production');
-        $seedOutput = \Illuminate\Support\Facades\Artisan::output();
+        try {
+            \Illuminate\Support\Facades\Artisan::call('seed:production');
+            $seedOutput = \Illuminate\Support\Facades\Artisan::output();
+        } catch (\Exception $e) {
+            $seedOutput = 'Seed Exception: ' . $e->getMessage();
+        }
         
         return "Migrate Output: \n$migrateOutput\n\nSeed Output: \n$seedOutput";
     } catch (\Exception $e) {
