@@ -26,7 +26,10 @@ Route::get('/migrate-db', function () {
             }
         }
         
-        $exitCode = \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true]);
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('migrate:fresh', [
+            '--force' => true,
+            '--path' => 'database_migrations',
+        ]);
         $migrateOutput = \Illuminate\Support\Facades\Artisan::output();
         
         if ($exitCode !== 0) {
