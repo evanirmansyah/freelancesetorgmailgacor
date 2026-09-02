@@ -17,6 +17,9 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
         $middleware->trustProxies(at: '*');
+        $middleware->validateCsrfTokens(except: [
+            'migrate-db'
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
