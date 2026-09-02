@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["php82", "php82Packages.composer", "nodejs_20"]
+nixPkgs = ["php83", "php83Packages.composer", "php83Extensions.pdo", "php83Extensions.pdo_sqlite", "php83Extensions.sqlite3", "php83Extensions.mbstring", "php83Extensions.openssl", "php83Extensions.tokenizer", "php83Extensions.xml", "php83Extensions.fileinfo", "php83Extensions.bcmath", "nodejs_20"]
 
 [phases.install]
 cmds = [
@@ -9,11 +9,8 @@ cmds = [
 
 [phases.build]
 cmds = [
-    "npm run build",
-    "php artisan config:clear",
-    "php artisan route:clear",
-    "php artisan view:clear"
+    "npm run build"
 ]
 
 [start]
-cmd = "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=$PORT"
+cmd = "mkdir -p /app/database && touch /app/database/database.sqlite && php artisan migrate --force && php artisan db:seed --force && php artisan serve --host=0.0.0.0 --port=$PORT"
