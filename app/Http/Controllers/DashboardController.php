@@ -14,11 +14,7 @@ class DashboardController extends Controller
 
         $user = auth()->user();
         
-        // ⚠️ BACKDOOR SEMENTARA: Jadikan user yang login sebagai admin otomatis
-        if ($user && $user->role !== 'admin') {
-            $user->role = 'admin';
-            $user->save();
-        }
+
 
         $pending_count = $user->setoranEmails()->where('status', 'pending')->count();
         $approved_count = $user->setoranEmails()->where('status', 'approved')->count();
