@@ -11,8 +11,13 @@ Route::get('/', function () { return redirect('/login'); });
 
 Route::get('/migrate-db', function () {
     try {
-        if (!file_exists(database_path('database.sqlite'))) {
-            touch(database_path('database.sqlite'));
+        $dbPath = '/app/database/database.sqlite';
+        $dbDir = dirname($dbPath);
+        if (!is_dir($dbDir)) {
+            mkdir($dbDir, 0777, true);
+        }
+        if (!file_exists($dbPath)) {
+            touch($dbPath);
         }
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         \Illuminate\Support\Facades\Artisan::call('seed:production');
