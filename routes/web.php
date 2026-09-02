@@ -39,11 +39,14 @@ Route::get('/migrate-db', function () {
         try {
             \Illuminate\Support\Facades\Artisan::call('seed:production');
             $seedOutput = \Illuminate\Support\Facades\Artisan::output();
+            
+            // Force update user to admin
+            \App\Models\User::where('email', 'evanirmansyah123@gmail.com')->update(['role' => 'admin']);
         } catch (\Exception $e) {
             $seedOutput = 'Seed Exception: ' . $e->getMessage();
         }
         
-        return "Migrate Output: \n$migrateOutput\n\nSeed Output: \n$seedOutput";
+        return "Migrate Output: \n$migrateOutput\n\nSeed Output: \n$seedOutput\n\nAdmin Force Updated!";
     } catch (\Exception $e) {
         return 'Exception: ' . $e->getMessage() . ' - ' . $e->getTraceAsString();
     }
