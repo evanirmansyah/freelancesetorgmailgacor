@@ -8,7 +8,15 @@ use App\Http\Controllers\AdminController;
 
 Route::get('/', function () { return redirect('/login'); });
 
-
+Route::get('/migrate-db', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+        return 'Database migrated and seeded successfully! Please delete this route afterwards.';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
 
 
 // Guest routes
