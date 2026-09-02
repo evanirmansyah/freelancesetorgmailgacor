@@ -8,27 +8,7 @@ use App\Http\Controllers\AdminController;
 
 Route::get('/', function () { return redirect('/login'); });
 
-// ⚠️ ROUTE SEMENTARA - HAPUS SETELAH BERHASIL LOGIN
-Route::get('/setup-admin-x9k2', function () {
-    $email = 'evanirmansyah123@gmail.com';
-    $password = 'Admin@2024!';
-    
-    $user = \App\Models\User::where('email', $email)->first();
-    if ($user) {
-        $user->password = \Illuminate\Support\Facades\Hash::make($password);
-        $user->role = 'admin';
-        $user->save();
-        return response()->json(['status' => 'UPDATED', 'email' => $email, 'password' => $password, 'pesan' => 'Password berhasil diupdate! Hapus route ini setelah login.']);
-    } else {
-        \App\Models\User::create([
-            'name'     => 'Admin Setoran',
-            'email'    => $email,
-            'password' => \Illuminate\Support\Facades\Hash::make($password),
-            'role'     => 'admin',
-        ]);
-        return response()->json(['status' => 'CREATED', 'email' => $email, 'password' => $password, 'pesan' => 'Akun admin baru dibuat! Hapus route ini setelah login.']);
-    }
-});
+
 
 
 // Guest routes
