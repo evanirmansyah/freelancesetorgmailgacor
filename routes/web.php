@@ -16,7 +16,7 @@ Route::get('/migrate-db', function () {
     } catch (\Exception $e) {
         return 'Error: ' . $e->getMessage();
     }
-});
+})->withoutMiddleware([\Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class]);
 
 
 // Guest routes
