@@ -9,9 +9,18 @@ use App\Http\Controllers\AdminController;
 
 Route::get('/', function () { return redirect('/login'); });
 
-
-
-
+Route::get('/migrate-db', function () {
+    try {
+        if (!file_exists(database_path('database.sqlite'))) {
+            touch(database_path('database.sqlite'));
+        }
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        \Illuminate\Support\Facades\Artisan::call('seed:production');
+        return 'Migration and Seed successfully ran! Admin account created. ' . \Illuminate\Support\Facades\Artisan::output();
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage() . ' - ' . $e->getTraceAsString();
+    }
+});
 // Guest routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
