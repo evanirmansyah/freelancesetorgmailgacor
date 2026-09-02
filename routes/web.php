@@ -26,15 +26,19 @@ Route::get('/migrate-db', function () {
             }
         }
         
-        \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true]);
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true]);
         $migrateOutput = \Illuminate\Support\Facades\Artisan::output();
+        
+        if ($exitCode !== 0) {
+            return "Migration Failed! Output:\n" . $migrateOutput;
+        }
         
         \Illuminate\Support\Facades\Artisan::call('seed:production');
         $seedOutput = \Illuminate\Support\Facades\Artisan::output();
         
         return "Migrate Output: \n$migrateOutput\n\nSeed Output: \n$seedOutput";
     } catch (\Exception $e) {
-        return 'Error: ' . $e->getMessage() . ' - ' . $e->getTraceAsString();
+        return 'Exception: ' . $e->getMessage() . ' - ' . $e->getTraceAsString();
     }
 });
 // Guest routes
