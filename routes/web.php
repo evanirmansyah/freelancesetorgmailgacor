@@ -12,16 +12,27 @@ Route::get('/', function () { return redirect('/login'); });
 Route::get('/migrate-db', function () {
     try {
         $dbPath = '/app/database/database.sqlite';
-        $dbDir = dirname($dbPath);
-        if (!is_dir($dbDir)) {
-            mkdir($dbDir, 0777, true);
+        $dbDir = \dirname($dbPath);
+        if (!\is_dir($dbDir)) {
+            if (!@\mkdir($dbDir, 0777, true)) {
+                $err = error_get_last();
+                return "Failed to mkdir: " . print_r($err, true);
+            }
         }
-        if (!file_exists($dbPath)) {
-            touch($dbPath);
+        if (!\file_exists($dbPath)) {
+            if (!@\touch($dbPath)) {
+                $err = error_get_last();
+                return "Failed to touch $dbPath. Error: " . print_r($err, true);
+            }
         }
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        
+        \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true]);
+        $migrateOutput = \Illuminate\Support\Facades\Artisan::output();
+        
         \Illuminate\Support\Facades\Artisan::call('seed:production');
-        return 'Migration and Seed successfully ran! Admin account created. ' . \Illuminate\Support\Facades\Artisan::output();
+        $seedOutput = \Illuminate\Support\Facades\Artisan::output();
+        
+        return "Migrate Output: \n$migrateOutput\n\nSeed Output: \n$seedOutput";
     } catch (\Exception $e) {
         return 'Error: ' . $e->getMessage() . ' - ' . $e->getTraceAsString();
     }
